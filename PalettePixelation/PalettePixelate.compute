@@ -1,0 +1,34 @@
+#pragma kernel PalettePixelate
+
+RWTexture2D<float4> _ResultTex;
+Texture2D _MainTex;
+RWStructuredBuffer<float4> _PaletteBuffer;
+int _PaletteLength;
+
+//WRONG!!!!! Color space for RGB is not perceptually uniform
+float3 GetNearestPaletteColor(float3 color)
+{
+    float3 result = float3(0.0f, 0.0f, 0.0f);
+    float minDelta = 1000000.0f;
+    for (int i = 0; i < _PaletteLength; i++)
+    {
+        float3 delta = _PaletteBuffer[i].rgb - color;
+        float distance = length(delta);
+        if (distance < minDelta)
+        {
+            minDelta = distance;
+            result = _PaletteBuffer[i].rgb;
+        }
+    }
+    return result;
+}
+
+[numthreads(8,8,1)]
+void PalettePixelate(uint3 id : SV_DispatchThreadID)
+{
+    float4 color = _MainTex[id.xy];
+
+    float3 paletteColor = GetNearestPaletteColor(color.rgb);
+
+    _ResultTex[id.xy] = float4(paletteColor, 1.0f);
+}

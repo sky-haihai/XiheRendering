@@ -1,0 +1,46 @@
+#pragma kernel BayerOrderedDithering
+
+RWTexture2D<float4> _OutputTexture;
+Texture2D _InputTexture;
+Texture2D _TargetOpaqueTexture;
+Texture2D _TargetDepthTexture;
+Texture2D _ObstacleDepthTexture;
+
+float _DitherThreshold;
+
+[numthreads(8,8, 1)]
+void BayerOrderedDithering(uint3 id : SV_DispatchThreadID)
+{
+    const float4x4 bayer = float4x4(
+        0.0f, 8.0f, 2.0f, 10.0f,
+        12.0f, 4.0f, 14.0f, 6.0f,
+        3.0f, 11.0f, 1.0f, 9.0f,
+        15.0f, 7.0f, 13.0f, 5.0f
+    );
+
+    float4 inputColor = _InputTexture[id.xy];
+
+    float targetDepth = _TargetDepthTexture[id.xy].r;
+    float obstacleDepth = _ObstacleDepthTexture[id.xy].r;
+    if (targetDepth <= 0 || obstacleDepth <= 0 || targetDepth > obstacleDepth)
+    {
+        _OutputTexture[id.xy] = inputColor;
+        return;
+    }
+
+    //float gray = dot(inputColor.rgb, float3(0.299f, 0.587f, 0.114f));
+
+    // 使用Bayer矩阵获取阈值
+    int x = int(id.x % 4);
+    int y = int(id.y % 4);
+    float threshold = bayer[x][y] * 0.0625f;
+
+    if (threshold > _DitherThreshold)
+    {
+        _OutputTexture[id.xy] = inputColor;
+    }
+    else
+    {
+        _OutputTexture[id.xy] = _TargetOpaqueTexture[id.xy];
+    }
+}
