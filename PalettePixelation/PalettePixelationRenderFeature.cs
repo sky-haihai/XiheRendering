@@ -61,11 +61,9 @@ public class PalettePixelationRenderFeature : ScriptableRendererFeature {
             cmd.SetComputeFloatParam(shader, "PixelSize", m_Settings.pixelSize);
             cmd.SetComputeBufferParam(shader, kernel, "_PaletteBuffer", m_PaletteBuffer);
             cmd.SetComputeIntParam(shader, "_PaletteLength", m_PaletteLength);
-
-            shader.GetKernelThreadGroupSizes(kernel, out uint x, out uint y, out uint z);
-
-            int threadGroupX = Mathf.CeilToInt(renderingData.cameraData.camera.scaledPixelWidth / (float)x);
-            int threadGroupY = Mathf.CeilToInt(renderingData.cameraData.camera.scaledPixelHeight / (float)y);
+            
+            int threadGroupX = Mathf.CeilToInt(renderingData.cameraData.camera.scaledPixelWidth / 8.0f);
+            int threadGroupY = Mathf.CeilToInt(renderingData.cameraData.camera.scaledPixelHeight / 8.0f);
             cmd.DispatchCompute(shader, kernel, threadGroupX, threadGroupY, 1);
 
             cmd.Blit(m_OutputRT.id, renderer.cameraColorTarget);

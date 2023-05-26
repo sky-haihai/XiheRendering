@@ -1,0 +1,92 @@
+#pragma kernel ScreenSpaceRainDrop
+
+RWTexture2D<float4> _OutputTex;
+Texture2D _InputColorTex;
+Texture2D _InputDepthTex;
+Texture2D _NoiseTex;
+int _Thickness;
+float _RainDropScale;
+float _EdgeThreshold;
+
+int _Width;
+int _Height;
+
+int _NoiseWidth;
+int _NoiseHeight;
+
+float4 _Time;
+float _DropSpeed;
+float4 _DropColor;
+
+static const float PI = 3.14159265f;
+
+[numthreads(8,8,1)]
+void ScreenSpaceRainDrop(uint3 id : SV_DispatchThreadID)
+{
+    if (int(id.x) + _Thickness >= _Width || int(id.y) + _Thickness >= _Height || int(id.x) - _Thickness < 0 || int(id.y) - _Thickness < 0)
+    {
+        _OutputTex[id.xy] = _InputColorTex[id.xy];
+        return;
+    }
+    //horizontal
+    // -1    0   1
+    // -2    0   2
+    // -1    0   1
+
+    //vertical
+    // 1    2   1
+    // 0    0   0
+    //-1   -2  -1
+
+    //p6    p7    p8
+    //p3    p4    p5
+    //p0    p1    p2
+
+    float depthSqr = _InputDepthTex[id.xy].r * _InputDepthTex[id.xy].r;
+
+    int sobelX = int(id.x);
+    int sobelY = int(id.y) - _Thickness * depthSqr;
+    int2 p0 = int2(sobelX - _Thickness * depthSqr, sobelY + _Thickness * depthSqr);
+    int2 p1 = int2(sobelX, sobelY - _Thickness);
+    int2 p2 = int2(sobelX + _Thickness * depthSqr, sobelY - _Thickness * depthSqr);
+    int2 p3 = int2(sobelX - _Thickness * depthSqr, sobelY);
+
+    int2 p5 = int2(sobelX + _Thickness * depthSqr, sobelY);
+    int2 p6 = int2(sobelX - _Thickness * depthSqr, sobelY + _Thickness * depthSqr);
+    int2 p7 = int2(sobelX, sobelY + _Thickness * depthSqr);
+    int2 p8 = int2(sobelX + _Thickness * depthSqr, sobelY + _Thickness * depthSqr);
+
+    // int2 p0 = int2(int(id.x), int(id.y) - _Thickness);
+    // int2 p1 = int2(int(id.x) + _Thickness, int(id.y) - _Thickness);
+    // int2 p2 = int2(int(id.x) + 2 * _Thickness, int(id.y) - _Thickness);
+    // int2 p3 = int2(int(id.x), int(id.y));
+    // int2 p4 = int2(int(id.x) + _Thickness, int(id.y));
+    // int2 p5 = int2(int(id.x) + 2 * _Thickness, int(id.y));
+    // int2 p6 = int2(int(id.x), int(id.y) + _Thickness);
+    // int2 p7 = int2(int(id.x) + _Thickness, int(id.y) + _Thickness);
+    // int2 p8 = int2(int(id.x) + 2 * _Thickness, int(id.y) + _Thickness);
+
+    // derivative in two directions
+    float dxPosX = _InputDepthTex[p0].r * -1 + _InputDepthTex[p3].r * -2 + _InputDepthTex[p6].r * -1 + _InputDepthTex[p2].r + _InputDepthTex[p5].r * 2 + _InputDepthTex[p8].r;
+    float dxPosY = _InputDepthTex[p0].r * -1 + _InputDepthTex[p1].r * -2 + _InputDepthTex[p2].r * -1 + _InputDepthTex[p6].r + _InputDepthTex[p7].r * 2 + _InputDepthTex[p8].r;
+
+    //edge mask
+    float dx = sqrt(dxPosX * dxPosX + dxPosY * dxPosY);
+    float edgeMask = step(_EdgeThreshold, dx);
+
+    //angle mask
+    float dir = atan2(dxPosY, dxPosX);
+    dir = (dir + PI) / (2 * PI);
+    float angleMask = step(dir, 0.5f);
+    edgeMask *= angleMask;
+
+    //noise mask
+    int noiseX = int((id.x + _Time.g * _DropSpeed) % _NoiseWidth);
+    int noiseY = int((id.y + _Time.g * _DropSpeed) % _NoiseHeight);
+    float noiseMask = step(_RainDropScale, _NoiseTex[int2(noiseX, noiseY)].r);
+
+    float finalMask = edgeMask * angleMask * noiseMask;
+    float4 result = lerp(_InputColorTex[id.xy], _DropColor, finalMask * _DropColor.a);
+
+    _OutputTex[id.xy] = dx;
+}
