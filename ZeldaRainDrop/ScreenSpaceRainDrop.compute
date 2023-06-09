@@ -56,16 +56,6 @@ void ScreenSpaceRainDrop(uint3 id : SV_DispatchThreadID)
     int2 p7 = int2(sobelX, sobelY + _Thickness * depthSqr);
     int2 p8 = int2(sobelX + _Thickness * depthSqr, sobelY + _Thickness * depthSqr);
 
-    // int2 p0 = int2(int(id.x), int(id.y) - _Thickness);
-    // int2 p1 = int2(int(id.x) + _Thickness, int(id.y) - _Thickness);
-    // int2 p2 = int2(int(id.x) + 2 * _Thickness, int(id.y) - _Thickness);
-    // int2 p3 = int2(int(id.x), int(id.y));
-    // int2 p4 = int2(int(id.x) + _Thickness, int(id.y));
-    // int2 p5 = int2(int(id.x) + 2 * _Thickness, int(id.y));
-    // int2 p6 = int2(int(id.x), int(id.y) + _Thickness);
-    // int2 p7 = int2(int(id.x) + _Thickness, int(id.y) + _Thickness);
-    // int2 p8 = int2(int(id.x) + 2 * _Thickness, int(id.y) + _Thickness);
-
     // derivative in two directions
     float dxPosX = _InputDepthTex[p0].r * -1 + _InputDepthTex[p3].r * -2 + _InputDepthTex[p6].r * -1 + _InputDepthTex[p2].r + _InputDepthTex[p5].r * 2 + _InputDepthTex[p8].r;
     float dxPosY = _InputDepthTex[p0].r * -1 + _InputDepthTex[p1].r * -2 + _InputDepthTex[p2].r * -1 + _InputDepthTex[p6].r + _InputDepthTex[p7].r * 2 + _InputDepthTex[p8].r;
@@ -88,5 +78,5 @@ void ScreenSpaceRainDrop(uint3 id : SV_DispatchThreadID)
     float finalMask = edgeMask * angleMask * noiseMask;
     float4 result = lerp(_InputColorTex[id.xy], _DropColor, finalMask * _DropColor.a);
 
-    _OutputTex[id.xy] = dx;
+    _OutputTex[id.xy] = result;
 }
