@@ -4,7 +4,8 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.Serialization;
 
 public class ZeldaRainDropFeature : ScriptableRendererFeature {
-    [SerializeField] public Settings settings = new Settings();
+    [SerializeField]
+    public Settings settings = new Settings();
 
     private RainDropRenderPass m_RenderPass;
 
@@ -15,7 +16,7 @@ public class ZeldaRainDropFeature : ScriptableRendererFeature {
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData) {
-        if (settings.rainDropShader != null && settings.rainDropShader != null) {
+        if (settings.rainDropShader != null && settings.noiseTex != null && settings.rainDropShader != null) {
             renderer.EnqueuePass(m_RenderPass);
         }
     }
@@ -40,7 +41,7 @@ public class ZeldaRainDropFeature : ScriptableRendererFeature {
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(name: "Screen Door Transparency");
+            CommandBuffer cmd = CommandBufferPool.Get(name: "Zelda Rain Drop");
             cmd.Clear();
 
             //cache color target
@@ -92,10 +93,17 @@ public class ZeldaRainDropFeature : ScriptableRendererFeature {
         public ComputeShader rainDropShader;
         public Texture2D noiseTex;
         public Color dropColor = Color.white;
-        [Range(0, 20)] public int thickness = 3;
-        [Range(0f, 1f)] public float sobelThreshold = 0.166f;
-        [Range(0f, 1f)] public float rainDropScale = 0.5f;
-        public float dropSpeed = 100f;
+
+        [Range(0, 20)]
+        public int thickness = 3;
+
+        [Range(0f, 1f)]
+        public float sobelThreshold = 0.166f;
+
+        [Range(0f, 1f)]
+        public float rainDropScale = 0.5f;
+
+        public float dropSpeed = 2000f;
         public RenderPassEvent renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
         public bool previewInSceneView = true;
     }
