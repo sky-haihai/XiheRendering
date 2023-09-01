@@ -1,10 +1,13 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
+[Obsolete("Obsolete")]
 public class SimplePixelationFeature : ScriptableRendererFeature {
     #region Renderer Pass
 
+    [Obsolete("Obsolete")]
     class PixelateRenderPass : ScriptableRenderPass {
         private RenderTargetIdentifier m_CameraRt;
         private RenderTargetHandle m_Temp;
