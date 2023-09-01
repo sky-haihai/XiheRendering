@@ -1,0 +1,54 @@
+#pragma kernel DrawPixelationMap
+
+RWTexture2D<float4> _OutputTexture;
+Texture2D _ObjectColorTexture;
+Texture2D<float> _ObjectDepthTexture;
+float _ScreenTexelSizeX;
+float _ScreenTexelSizeY;
+
+[numthreads(8,8,1)]
+void DrawPixelationMap(uint3 id : SV_DispatchThreadID)
+{
+    float4 input = _ObjectColorTexture[id.xy];
+    uint pixelSize = round(input.a * 10.0);
+    // if (pixelSize > 1)
+    // {
+    //     _OutputTexture[id.xy] = float4(0, 1, 0, 1); //debug
+    //     return;
+    // }
+
+    float nearestDepth = 1.0f;
+    for (float i = -2.0; i <= 2; i++)
+    {
+        for (float j = -2.0; j <= 2.0; j++)
+        {
+            uint2 uv = id.xy + int2(i, j);
+            //out of screen
+            if (uv.x < 0 || uv.x >= _ScreenTexelSizeX || uv.x < 0 || uv.x >= _ScreenTexelSizeY)
+            {
+                continue;
+            }
+
+            float depth = 1 - _ObjectDepthTexture[uv];
+            if (depth < nearestDepth && depth > 0.0f)
+            {
+                nearestDepth = depth;
+                _OutputTexture[id.xy] = _ObjectColorTexture[uv];
+            }
+            // if (depth < nearestDepth && depth > 0.0f)
+            // {
+            //     nearestDepth = depth;
+            //     _OutputTexture[id.xy] = _ObjectColorTexture[uv];
+            //     // if (abs(int(uv.x) - int(id.x)) < floor((pixelSize + 1) / 2) && abs(int(uv.y) - int(id.y)) < floor((pixelSize + 1) / 2))
+            //     // {
+            //     //     
+            //     //     nearestDepth = depth;
+            //     //     _OutputTexture[id.xy] = _ObjectColorTexture[uv];
+            //     // }
+            // }
+        }
+    }
+
+
+    //_OutputTexture[id.xy] = 1 - _ObjectDepthTexture[id.xy]; //debug
+}

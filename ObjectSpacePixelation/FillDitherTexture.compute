@@ -9,18 +9,50 @@ Texture2D _ObjectDepthTexture;
 float _CameraNear;
 float _CameraFar;
 
-float LinearizeDepth(float depth, float near, float far)
-{
-    float z = depth * 2.0f - 1.0f;
-    return (2.0f * near * far) / (far + near - z * (far - near));
-}
-
 [numthreads(8,8,1)]
-void FillDitherTexture (uint3 id : SV_DispatchThreadID)
+void FillDitherTexture(uint3 id : SV_DispatchThreadID)
 {
-    float4 ditheredColor = _ObjectColorTexture[id.xy];
-    float4 camColor = _ObjectDepthTexture[id.xy];
+    float nearestDepth = 1.0f;
+    float4 resultColor = _ObjectColorTexture[id.xy];
     
+    if (_CameraDepthTexture[id.xy].r > _ObjectDepthTexture[id.xy].r)
+    {
+        resultColor = _CameraOpaqueTexture[id.xy];
+    }
+    else
+    {
+        for (int u = -2; u <= 2; u++)
+        {
+            for (int v = -2; v <= 2; v++)
+            {
+                int2 offset = id.xy + uint2(u, v);
+                float objDepth01 = 1.0f - _ObjectDepthTexture[offset].r;
+                float4 objColor = _ObjectColorTexture[offset];
 
-    _OutputTexture[id.xy] = camColor;
+                resultColor = objDepth01;
+                if (objDepth01 < nearestDepth)
+                {
+                    nearestDepth = objDepth01;
+                    resultColor = objColor;
+                }
+            }
+        }
+    }
+
+
+    if (_CameraDepthTexture[id.xy].r > _ObjectDepthTexture[id.xy].r)
+    {
+        resultColor = _CameraOpaqueTexture[id.xy];
+    }
+
+    // float camDepth01 = 1.0f - _CameraDepthTexture[id.xy].r;
+    // if (nearestDepth > camDepth01)
+    // {
+    //     _OutputTexture[id.xy] = _CameraOpaqueTexture[id.xy];
+    // }
+
+    _OutputTexture[id.xy] = resultColor;
+    // _OutputTexture[id.xy] = _ObjectColorTexture[id.xy];
+    // _OutputTexture[id.xy] = 1.0f - _ObjectDepthTexture[id.xy].r;
+    // _OutputTexture[id.xy] = _CameraOpaqueTexture[id.xy];
 }
