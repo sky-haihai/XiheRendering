@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace OilPaint.Scripts.Editor {
+namespace XiheRendering.Procedural.VertexDensityBaker.Editor {
     public class VertexDensityBakerEditorWindow : EditorWindow {
         private enum Channel {
             R,
@@ -36,7 +36,7 @@ namespace OilPaint.Scripts.Editor {
                 GUI.enabled = false;
             }
 
-            if (GUILayout.Button("Swizzle", GUILayout.Height(60))) {
+            if (GUILayout.Button("Start Bake", GUILayout.Height(60))) {
                 BakeVertexDensity();
             }
 
@@ -76,6 +76,10 @@ namespace OilPaint.Scripts.Editor {
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
+            m_SourceMesh.SetColors(colors);
+
+            Debug.Log("Bake Success! Triangle count: " + m_SourceMesh.triangles.Length / 3 + ", Vertex count: " + m_SourceMesh.vertexCount + ", Channel: " + m_TargetChannel);
         }
 
         List<int>[] ComputeVertexNeighbors() {
@@ -119,12 +123,13 @@ namespace OilPaint.Scripts.Editor {
 
                 foreach (var neighbor in neighbors) {
                     density += Vector3.Distance(m_SourceMesh.vertices[i], m_SourceMesh.vertices[neighbor]);
+
                     if (density > upperBound) {
-                        density = upperBound;
+                        upperBound = density;
                     }
 
                     if (density < lowerBound) {
-                        density = lowerBound;
+                        lowerBound = density;
                     }
                 }
 
@@ -132,6 +137,7 @@ namespace OilPaint.Scripts.Editor {
             }
 
             // Normalize
+            Debug.Log($"Upper bound: {upperBound}, Lower bound: {lowerBound}");
             var range = upperBound - lowerBound;
             for (int i = 0; i < result.Count; i++) {
                 result[i] = (result[i] - lowerBound) / range;
