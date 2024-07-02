@@ -26,18 +26,20 @@ namespace XiheRendering.Procedural.OilPaint {
 
         public int layer;
 
+        public bool alwaysUpdate = false;
         public bool renderInSceneCamera = true;
         public bool enableDebug = false;
 
         private Vector3 m_Dimension = Vector3.zero;
         private Vector3 m_CachedDimension = Vector3.zero;
-        private float m_CachedRotationRandomness = 0;
+        private float m_CachedScaleMax = -1;
+        private float m_CachedScaleMin = -1;
+        private float m_CachedRotationRandomness = -1;
         private Vector3 m_CachedBaseMeshScale = Vector3.zero;
-        private float m_CachedBumpiness = 0;
-        private float m_CachedAlphaCutoff = 0;
+        private float m_CachedBumpiness = -1;
+        private float m_CachedAlphaCutoff = -1;
 
-        // [SerializeField]
-        private Material m_InstancedMaterial;
+        private Material m_OriginalMaterial;
 
         private ComputeBuffer m_PositionBuffer;
         private ComputeBuffer m_NormalBuffer;
@@ -76,7 +78,6 @@ namespace XiheRendering.Procedural.OilPaint {
         }
 
         void Init() {
-            m_InstancedMaterial = null;
             if (material == null) {
                 return;
             }
@@ -87,27 +88,25 @@ namespace XiheRendering.Procedural.OilPaint {
             m_TangentBuffer = new ComputeBuffer(vertexCount, 4 * sizeof(float));
             m_ColorBuffer = new ComputeBuffer(vertexCount, 4 * sizeof(float));
             m_ArgsBuffer = new ComputeBuffer(1, m_Args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
-            m_InstancedMaterial = new Material(material);
+            m_OriginalMaterial = material;
+            material = new Material(material);
 
             m_PropertyBlock = new MaterialPropertyBlock();
         }
 
         void Update() {
-            m_Dimension = baseMeshRenderer.bounds.size;
-            // Update starting position buffer
-            if (m_CachedDimension != m_Dimension || Math.Abs(m_CachedRotationRandomness - rotationRandomness) > 0.01f ||
-                (transform.localScale.magnitude - m_CachedBaseMeshScale.magnitude) > 0.01f || (m_CachedBumpiness - bumpiness) > 0.01f ||
-                (m_CachedAlphaCutoff - alphaCutoff) > 0.01f) {
+            if (SettingChanged() || alwaysUpdate) {
                 UpdateBuffers();
             }
 
             // Render
-            Graphics.DrawMeshInstancedIndirect(mesh, 0, m_InstancedMaterial, new Bounds(transform.position, m_Dimension), m_ArgsBuffer, 0, m_PropertyBlock,
+            Graphics.DrawMeshInstancedIndirect(mesh, 0, material, new Bounds(transform.position, m_Dimension), m_ArgsBuffer, 0, m_PropertyBlock,
                 ShadowCastingMode.On, true, layer, renderInSceneCamera ? null : Camera.main);
         }
 
         private void OnDestroy() {
-            m_InstancedMaterial = null;
+            material = m_OriginalMaterial;
+            m_OriginalMaterial = null;
             m_PositionBuffer?.Dispose();
             m_NormalBuffer?.Dispose();
             m_TangentBuffer?.Dispose();
@@ -115,7 +114,33 @@ namespace XiheRendering.Procedural.OilPaint {
             m_ArgsBuffer?.Dispose();
         }
 
+        private bool SettingChanged() {
+            bool changed = false;
+            if (Mathf.Abs(m_CachedDimension.magnitude - m_Dimension.magnitude) > 0.01f) changed = true;
+            if (Math.Abs(m_CachedScaleMax - scaleMax) > 0.01f) changed = true;
+            if (Math.Abs(m_CachedScaleMin - scaleMin) > 0.01f) changed = true;
+            if (Math.Abs(m_CachedRotationRandomness - rotationRandomness) > 0.01f) changed = true;
+            if (Math.Abs(transform.localScale.magnitude - m_CachedBaseMeshScale.magnitude) > 0.01f) changed = true;
+            if (Math.Abs(m_CachedBumpiness - bumpiness) > 0.01f) changed = true;
+            if (Math.Abs(m_CachedAlphaCutoff - alphaCutoff) > 0.01f) changed = true;
+
+            if (changed) {
+                m_CachedDimension = m_Dimension;
+                m_CachedScaleMax = scaleMax;
+                m_CachedScaleMin = scaleMin;
+                m_CachedRotationRandomness = rotationRandomness;
+                m_CachedBaseMeshScale = transform.localScale;
+                m_CachedBumpiness = bumpiness;
+                m_CachedAlphaCutoff = alphaCutoff;
+                return true;
+            }
+
+            return false;
+        }
+
         void UpdateBuffers() {
+            m_Dimension = baseMeshRenderer.bounds.size;
+
             if (mesh == null) {
                 m_Args[0] = m_Args[1] = m_Args[2] = m_Args[3] = 0;
                 m_PropertyBlock.Clear();
@@ -131,10 +156,10 @@ namespace XiheRendering.Procedural.OilPaint {
             m_TangentBuffer.SetData(baseMeshFilter.mesh.tangents);
             m_ColorBuffer.SetData(baseMeshFilter.mesh.colors);
 
-            m_InstancedMaterial.SetBuffer(PositionBuffer, m_PositionBuffer);
-            m_InstancedMaterial.SetBuffer(NormalBuffer, m_NormalBuffer);
-            m_InstancedMaterial.SetBuffer(TangentBuffer, m_TangentBuffer);
-            m_InstancedMaterial.SetBuffer(ColorBuffer, m_ColorBuffer);
+            material.SetBuffer(PositionBuffer, m_PositionBuffer);
+            material.SetBuffer(NormalBuffer, m_NormalBuffer);
+            material.SetBuffer(TangentBuffer, m_TangentBuffer);
+            material.SetBuffer(ColorBuffer, m_ColorBuffer);
 
             m_PropertyBlock.SetFloat(RotationRandomness, rotationRandomness);
             m_PropertyBlock.SetMatrix(TRSMatrix, transform.localToWorldMatrix);
@@ -156,8 +181,6 @@ namespace XiheRendering.Procedural.OilPaint {
             m_Args[3] = (uint)mesh.GetBaseVertex(0);
 
             m_ArgsBuffer.SetData(m_Args);
-
-            m_CachedDimension = m_Dimension;
         }
 
 #if UNITY_EDITOR

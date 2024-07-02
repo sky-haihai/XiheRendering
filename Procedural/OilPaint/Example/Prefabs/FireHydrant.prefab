@@ -96,7 +96,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 3159797b358c12a48af59182d4b0c018,
         type: 3}
       propertyPath: m_Name
-      value: M_Fire
+      value: FireHydrant
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 3159797b358c12a48af59182d4b0c018,
         type: 3}
@@ -186,15 +186,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b09212f3755726248bfa080fa2029399, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mesh: {fileID: -3781860745874542921, guid: 0ce742ead25f7604da291a625af69c09, type: 3}
+  mesh: {fileID: 4300000, guid: c82bee96545bc57459831ceaae7e5884, type: 2}
   material: {fileID: 2100000, guid: 01c214d3156652848b256d957e6d800d, type: 2}
   baseMeshFilter: {fileID: 8914662128424998816}
   baseMeshRenderer: {fileID: 8268849175540630895}
-  scaleMax: 0.6
+  scaleMax: 0.15
   scaleMin: 0
-  rotationRandomness: 0.453
-  bumpiness: 0.154
-  alphaCutoff: 0.179
+  rotationRandomness: 0.09
+  bumpiness: 0.051
+  alphaCutoff: 0.545
   layer: 0
   renderInSceneCamera: 1
   enableDebug: 0
@@ -216,7 +216,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b09212f3755726248bfa080fa2029399, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mesh: {fileID: -3781860745874542921, guid: 0ce742ead25f7604da291a625af69c09, type: 3}
+  mesh: {fileID: 4300000, guid: c82bee96545bc57459831ceaae7e5884, type: 2}
   material: {fileID: 2100000, guid: 01c214d3156652848b256d957e6d800d, type: 2}
   baseMeshFilter: {fileID: 6853355751223907870}
   baseMeshRenderer: {fileID: 6866160238220536875}
@@ -276,15 +276,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b09212f3755726248bfa080fa2029399, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mesh: {fileID: -3781860745874542921, guid: 0ce742ead25f7604da291a625af69c09, type: 3}
+  mesh: {fileID: 4300000, guid: c82bee96545bc57459831ceaae7e5884, type: 2}
   material: {fileID: 2100000, guid: 01c214d3156652848b256d957e6d800d, type: 2}
   baseMeshFilter: {fileID: 7662009382010934090}
   baseMeshRenderer: {fileID: 3611987971194120059}
-  scaleMax: 0.6
+  scaleMax: 0.15
   scaleMin: 0
-  rotationRandomness: 0.453
-  bumpiness: 0.154
-  alphaCutoff: 0.179
+  rotationRandomness: 0.212
+  bumpiness: 0.058
+  alphaCutoff: 0.288
   layer: 0
   renderInSceneCamera: 1
   enableDebug: 0
@@ -324,7 +324,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b09212f3755726248bfa080fa2029399, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mesh: {fileID: -3781860745874542921, guid: 0ce742ead25f7604da291a625af69c09, type: 3}
+  mesh: {fileID: 4300000, guid: c82bee96545bc57459831ceaae7e5884, type: 2}
   material: {fileID: 2100000, guid: 01c214d3156652848b256d957e6d800d, type: 2}
   baseMeshFilter: {fileID: 5280445105834462064}
   baseMeshRenderer: {fileID: 3499351473553806511}
@@ -366,7 +366,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b09212f3755726248bfa080fa2029399, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mesh: {fileID: -3781860745874542921, guid: 0ce742ead25f7604da291a625af69c09, type: 3}
+  mesh: {fileID: 4300000, guid: c82bee96545bc57459831ceaae7e5884, type: 2}
   material: {fileID: 2100000, guid: 01c214d3156652848b256d957e6d800d, type: 2}
   baseMeshFilter: {fileID: 4397650538859675744}
   baseMeshRenderer: {fileID: 4104104367483386439}
