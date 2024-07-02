@@ -17,6 +17,7 @@ namespace XiheRendering.Procedural.TextureToVertexColorBaker.Editor {
         private Mesh m_SourceMesh;
         private Texture2D m_Texture;
         private UvChannel m_UvChannel;
+        private bool m_IgnoreAlpha = true;
 
 
         [MenuItem("XiheRendering/Texture To Vertex Color Baker")]
@@ -36,11 +37,44 @@ namespace XiheRendering.Procedural.TextureToVertexColorBaker.Editor {
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
+            GUILayout.Label("Ignore Alpha");
+            m_IgnoreAlpha = EditorGUILayout.Toggle(m_IgnoreAlpha);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
             GUILayout.Label("UV Channel");
             m_UvChannel = (UvChannel)EditorGUILayout.EnumPopup(m_UvChannel);
             GUILayout.EndHorizontal();
 
-            if (m_SourceMesh == null || m_Texture == null) {
+            //display uv count
+            GUILayout.BeginHorizontal();
+            var uvCount = 0;
+            if (m_SourceMesh != null) {
+                switch (m_UvChannel) {
+                    case UvChannel.UV0:
+                        uvCount = m_SourceMesh.uv.Length;
+                        break;
+                    case UvChannel.UV1:
+                        uvCount = m_SourceMesh.uv2.Length;
+                        break;
+                    case UvChannel.UV2:
+                        uvCount = m_SourceMesh.uv3.Length;
+                        break;
+                    case UvChannel.UV3:
+                        uvCount = m_SourceMesh.uv4.Length;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            if (uvCount == 0) {
+                EditorGUILayout.HelpBox($"UV {(int)m_UvChannel} is empty", MessageType.Warning);
+            }
+
+            GUILayout.EndHorizontal();
+
+            if (m_SourceMesh == null || m_Texture == null || uvCount == 0) {
                 GUI.enabled = false;
             }
 
@@ -76,10 +110,14 @@ namespace XiheRendering.Procedural.TextureToVertexColorBaker.Editor {
             for (var i = 0; i < vertices.Length; i++) {
                 var uv = uvs[i];
                 var color = m_Texture.GetPixelBilinear(uv.x, uv.y);
-                color.r = Mathf.Pow(color.a, 2.2f);
-                color.g = Mathf.Pow(color.a, 2.2f);
-                color.b = Mathf.Pow(color.a, 2.2f);
-                color.a = color.a;
+                var originAlpha = m_SourceMesh.colors[i].a;
+                color.r = Mathf.Pow(color.r, 2.2f);
+                color.g = Mathf.Pow(color.g, 2.2f);
+                color.b = Mathf.Pow(color.b, 2.2f);
+                if (m_IgnoreAlpha) {
+                    color.a = originAlpha;
+                }
+
                 colors[i] = color;
 
                 //progress
