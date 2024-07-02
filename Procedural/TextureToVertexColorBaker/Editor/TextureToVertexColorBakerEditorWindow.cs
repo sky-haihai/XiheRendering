@@ -53,34 +53,37 @@ namespace XiheRendering.Procedural.TextureToVertexColorBaker.Editor {
 
         private IEnumerator StartBake() {
             var vertices = m_SourceMesh.vertices;
-            var uvs = m_SourceMesh.uv;
             var colors = new Color[vertices.Length];
+
+            Vector2[] uvs;
+            switch (m_UvChannel) {
+                case UvChannel.UV0:
+                    uvs = m_SourceMesh.uv;
+                    break;
+                case UvChannel.UV1:
+                    uvs = m_SourceMesh.uv2;
+                    break;
+                case UvChannel.UV2:
+                    uvs = m_SourceMesh.uv3;
+                    break;
+                case UvChannel.UV3:
+                    uvs = m_SourceMesh.uv4;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
             for (var i = 0; i < vertices.Length; i++) {
                 var uv = uvs[i];
-                switch (m_UvChannel) {
-                    case UvChannel.UV0:
-                        var color = m_Texture.GetPixelBilinear(uv.x, uv.y);
-                        color.r = Mathf.Pow(color.r, 2.2f);
-                        color.g = Mathf.Pow(color.g, 2.2f);
-                        color.b = Mathf.Pow(color.b, 2.2f);
-                        colors[i] = color;
-                        break;
-                    case UvChannel.UV1:
-                        colors[i] = m_Texture.GetPixelBilinear(uv.x, uv.y);
-                        break;
-                    case UvChannel.UV2:
-                        colors[i] = m_Texture.GetPixelBilinear(uv.x, uv.y);
-                        break;
-                    case UvChannel.UV3:
-                        colors[i] = m_Texture.GetPixelBilinear(uv.x, uv.y);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                var color = m_Texture.GetPixelBilinear(uv.x, uv.y);
+                color.r = Mathf.Pow(color.a, 2.2f);
+                color.g = Mathf.Pow(color.a, 2.2f);
+                color.b = Mathf.Pow(color.a, 2.2f);
+                color.a = color.a;
+                colors[i] = color;
 
                 //progress
-                if (i % 100 == 0) {
+                if (i % 1000 == 0) {
                     EditorUtility.DisplayProgressBar("Baking", "Baking vertex color...", (float)i / vertices.Length);
                     yield return null;
                 }

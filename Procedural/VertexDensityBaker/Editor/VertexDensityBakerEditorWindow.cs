@@ -157,7 +157,7 @@ namespace XiheRendering.Procedural.VertexDensityBaker.Editor {
 
                 result.Add(density);
 
-                if (i % 100 == 0) {
+                if (i % 1000 == 0) {
                     EditorUtility.DisplayProgressBar("Baking Vertex Density", "Baking...(2/2)", (float)i / m_SourceMesh.vertexCount);
                     yield return null;
                 }
