@@ -16,7 +16,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: f0b8eebb03e32d146a61557cf42eef82,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -4.05
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f0b8eebb03e32d146a61557cf42eef82,
         type: 3}
@@ -133,16 +133,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   billboardMesh: {fileID: 4300000, guid: c82bee96545bc57459831ceaae7e5884, type: 2}
-  billboardMaterial: {fileID: 2100000, guid: fc4e285d46704484f97f84657569f2cd, type: 2}
+  billboardMaterial: {fileID: 2100000, guid: 201dfe5fd4928914db1a8f12834af4ce, type: 2}
   baseMeshFilter: {fileID: 0}
   baseMeshRenderer: {fileID: 0}
   baseSkinnedMeshRenderer: {fileID: 3480651313190396095}
   useSkinnedMeshRenderer: 1
-  scaleMax: 1
+  scaleMax: 2.07
   scaleMin: 0
-  rotationRandomness: 0.2
-  bumpiness: 0.2
-  alphaCutoff: 0.2
+  rotationRandomness: 0.162
+  bumpiness: 0.162
+  alphaCutoff: 0.113
   layer: 0
   alwaysUpdate: 1
   renderInSceneCamera: 1
