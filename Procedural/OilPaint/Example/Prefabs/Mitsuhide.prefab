@@ -1,0 +1,128 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &7573473821546245494
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7651003026284843188, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 8e5d6b305c74ac84089f6d6f3c34d750, type: 2}
+    - target: {fileID: 919132149155446097, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_Name
+      value: Mitsuhide
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: ce6408c6b1f2fe84faba0aeac7a8f794, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3045514809740275073, guid: 242d523f678c83843b8d12addcf26e05,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5194170192246716717}
+  m_SourcePrefab: {fileID: 100100000, guid: 242d523f678c83843b8d12addcf26e05, type: 3}
+--- !u!1 &4853109935346106615 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3045514809740275073, guid: 242d523f678c83843b8d12addcf26e05,
+    type: 3}
+  m_PrefabInstance: {fileID: 7573473821546245494}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5194170192246716717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4853109935346106615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b09212f3755726248bfa080fa2029399, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  billboardMesh: {fileID: 4300000, guid: c82bee96545bc57459831ceaae7e5884, type: 2}
+  billboardMaterial: {fileID: 2100000, guid: 8d293a7d5008cdc478f3dfdf1419ac1f, type: 2}
+  baseMeshFilter: {fileID: 0}
+  baseMeshRenderer: {fileID: 0}
+  baseSkinnedMeshRenderer: {fileID: 8991523622055150138}
+  useSkinnedMeshRenderer: 1
+  scaleMax: 0.22
+  scaleMin: 0.01
+  rotationRandomness: 0.11
+  bumpiness: 0.07
+  alphaCutoff: 0.23
+  layer: 0
+  alwaysUpdate: 1
+  renderInSceneCamera: 1
+  enableDebug: 0
+--- !u!137 &8991523622055150138 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7651003026284843188, guid: 242d523f678c83843b8d12addcf26e05,
+    type: 3}
+  m_PrefabInstance: {fileID: 7573473821546245494}
+  m_PrefabAsset: {fileID: 0}

@@ -22,8 +22,13 @@ namespace XiheRendering.Utility.VertexDensityBaker.Editor {
         }
 
         private Mesh m_SourceMesh;
-        private Channel m_TargetChannel;
+        private Channel m_TargetChannel = Channel.A;
         private SampleMode m_SampleMode;
+        private int m_VertexCount;
+        private bool m_Baking = false;
+        private EditorCoroutine m_Handle;
+        private int m_TotalProcessCount = 0;
+        private int m_TriangleCount = 0;
 
         [MenuItem("XiheRendering/Vertex Density Baker")]
         private static void ShowWindow() {
@@ -64,13 +69,25 @@ namespace XiheRendering.Utility.VertexDensityBaker.Editor {
             }
 
             if (GUILayout.Button("Start Bake", GUILayout.Height(60))) {
-                EditorCoroutineUtility.StartCoroutineOwnerless(StartBake());
+                m_Baking = true;
+                m_Handle = EditorCoroutineUtility.StartCoroutineOwnerless(StartBake());
             }
 
             GUI.enabled = true;
         }
 
+        void StopBake() {
+            if (m_Baking) {
+                EditorCoroutineUtility.StopCoroutine(m_Handle);
+                m_Baking = false;
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
         IEnumerator StartBake() {
+            m_VertexCount = m_SourceMesh.vertexCount;
+            m_TriangleCount = m_SourceMesh.triangles.Length;
+            m_TotalProcessCount = m_VertexCount * 2 + m_TriangleCount;
             BakeVertexDensity();
             yield return null;
         }
@@ -85,6 +102,11 @@ namespace XiheRendering.Utility.VertexDensityBaker.Editor {
         }
 
         IEnumerator ComputeVertexNeighbors(Action<List<int>[]> onFinish) {
+            if (m_Baking == false) {
+                EditorUtility.ClearProgressBar();
+                yield break;
+            }
+
             var result = new List<int>[m_SourceMesh.vertexCount];
 
             for (int i = 0; i < result.Length; i++) {
@@ -107,23 +129,31 @@ namespace XiheRendering.Utility.VertexDensityBaker.Editor {
 
                 result[vert3].Add(vert1);
                 result[vert3].Add(vert2);
-                if (i % 100 == 0) {
-                    EditorUtility.DisplayProgressBar("Baking Vertex Density", "Baking...(1/2)", (float)i / m_SourceMesh.triangles.Length);
+                if (i % 1000 == 0) {
+                    var progress = (float)i / m_TotalProcessCount;
+                    Debug.Log($"Baking...1 {(float)i}/{m_TotalProcessCount}");
+                    if (EditorUtility.DisplayCancelableProgressBar("Baking Vertex Density", "Baking...1", progress)) {
+                        StopBake();
+                        yield break;
+                    }
+
                     yield return null;
                 }
             }
 
             for (int i = 0; i < result.Length; i++) {
                 result[i] = result[i].Distinct().ToList();
-                if (i % 1000 == 0) {
-                    yield return null;
-                }
             }
 
             onFinish(result);
         }
 
         IEnumerator ComputeVertexDensity(List<int>[] vertexNeighbors, Action<List<float>> onFinish) {
+            if (m_Baking == false) {
+                EditorUtility.ClearProgressBar();
+                yield break;
+            }
+
             var result = new List<float>();
 
             var upperBound = 0f;
@@ -171,7 +201,13 @@ namespace XiheRendering.Utility.VertexDensityBaker.Editor {
                 result.Add(density);
 
                 if (i % 1000 == 0) {
-                    EditorUtility.DisplayProgressBar("Baking Vertex Density", "Baking...(2/2)", (float)i / m_SourceMesh.vertexCount);
+                    var progress = (float)(i + m_TriangleCount) / m_TotalProcessCount;
+                    Debug.Log($"Baking...2 {(i + m_TriangleCount)}/{m_TotalProcessCount}");
+                    if (EditorUtility.DisplayCancelableProgressBar("Baking Vertex Density", "Baking...2", progress)) {
+                        StopBake();
+                        yield break;
+                    }
+
                     yield return null;
                 }
             }
@@ -182,6 +218,13 @@ namespace XiheRendering.Utility.VertexDensityBaker.Editor {
             for (int i = 0; i < result.Count; i++) {
                 result[i] = (result[i] - lowerBound) / range;
                 if (i % 1000 == 0) {
+                    var progress = (float)(i + m_TriangleCount + m_VertexCount) / m_TotalProcessCount;
+                    Debug.Log($"Baking...3 {(float)(i + m_TriangleCount + m_VertexCount)}/{m_TotalProcessCount}");
+                    if (EditorUtility.DisplayCancelableProgressBar("Baking Vertex Density", "Baking...3", progress)) {
+                        StopBake();
+                        yield break;
+                    }
+
                     yield return null;
                 }
             }
@@ -191,6 +234,7 @@ namespace XiheRendering.Utility.VertexDensityBaker.Editor {
 
         private void ApplyDensityToVertexColor(List<float> vertexDensity) {
             var colors = new Color[m_SourceMesh.vertexCount];
+            colors = m_SourceMesh.colors;
 
             switch (m_TargetChannel) {
                 case Channel.R:

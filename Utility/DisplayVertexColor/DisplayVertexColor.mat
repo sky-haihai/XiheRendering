@@ -27,5 +27,5 @@ Material:
     m_Floats:
     - _DisplayChannel: 4
     m_Colors:
-    - _ShadowColor: {r: 0.41509432, g: 0.41509432, b: 0.41509432, a: 1}
+    - _ShadowColor: {r: 0.26666668, g: 0.26666668, b: 0.26666668, a: 1}
   m_BuildTextureStacks: []

@@ -14,7 +14,7 @@ Shader "OilPaint/BrushStrokeInstancing" {
         _EdgeAlpha ("Edge Alpha", Range(0,1.)) = 0.5
     }
     SubShader {
-        Cull Off
+        Cull Back
         Zwrite On
 
         Tags {
@@ -168,7 +168,8 @@ Shader "OilPaint/BrushStrokeInstancing" {
                                   saturate(IN.vertexColor.rgb * _ShadowColor),
                                   saturate(1 - ndotl));
 
-                output.a = lerp(albedo.a * _EdgeAlpha, albedo.a, saturate(ndoth));
+                // output.rgb=ndoth;
+                output.a = lerp(albedo.a, _EdgeAlpha, ndoth);
                 return output;
             }
             ENDHLSL

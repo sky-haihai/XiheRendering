@@ -83,9 +83,9 @@ namespace XiheRendering.Procedural.OilPaint {
                 billboardMesh = AssetDatabase.LoadAssetAtPath<Mesh>("Assets/XiheRendering/Procedural/OilPaint/Template/Quad.asset");
             }
 
-            if (billboardMaterial == null) {
-                billboardMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/XiheRendering/Procedural/OilPaint/Template/BrushStroke.mat");
-            }
+            // if (billboardMaterial == null) {
+            //     billboardMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/XiheRendering/Procedural/OilPaint/Template/BrushStroke.mat");
+            // }
 
             if (baseMeshFilter == null) baseMeshFilter = GetComponent<MeshFilter>();
             if (baseMeshRenderer == null) {
@@ -154,7 +154,6 @@ namespace XiheRendering.Procedural.OilPaint {
 
         private void OnDestroy() {
             billboardMaterial = m_OriginalMaterial;
-            m_OriginalMaterial = null;
             m_StrokeDataBuffer?.Dispose();
             m_ArgsBuffer?.Dispose();
         }
