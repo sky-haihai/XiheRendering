@@ -18,13 +18,7 @@ Shader "OcOilPaint/BrushStrokeLit" {
         _Metallic ("Metallic", Range(0.0,1.0)) = 0.0
         _Smoothness ("Smoothness", Range(0.0,1.0)) = 0.5
 
-        _RampTex ("Ramp Map", 2D) = "white" {}
-
-        [Toggle]_UseEnvReflection ("Enable Environment Reflection", Int) = 0
-        _FresnelIntensity ("Fresnel Intensity", float) = 1.0
-        _FresnelThreshold ("Fresnel Threshold", Range(0.0,1.0)) = 0.5
-        _FresnelSmoothness ("Fresnel Smoothness", Range(0.0,0.5) ) = 0.5
-        _FresnelColor ("Fresnel Color", Color) = (1.0,1.0,1.0,1.0)
+        [ToggleOff(_ENVIRONMENTREFLECTIONS_OFF)]_UseEnvReflection ("Enable Environment Reflection", Int) = 0
 
         [Toggle]_UseEmission ("Enable Emission", Int) = 0
         [HDR] _EmissionColor ("Emission Color", Color) = (0.0, 0.0, 0.0, 1.0)
@@ -32,7 +26,7 @@ Shader "OcOilPaint/BrushStrokeLit" {
         [Enum(UnityEngine.Rendering.CullMode)] _CullMode ("CullMode", Float) = 2.0
         [Enum(UnityEngine.Rendering.BlendMode)] _BlendSrc ("Blend mode Source", Int) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _BlendDst ("Blend mode Destination", Int) = 0
-        [Toggle] _ReceiveShadows ("Receive Shadows", Int) = 1
+        [Toggle(_RECEIVESHADOWS_ON)] _ReceiveShadows ("Receive Shadows", Int) = 1
     }
     SubShader {
 
@@ -56,7 +50,7 @@ Shader "OcOilPaint/BrushStrokeLit" {
             #pragma fragment BrushStrokeFragment
             #pragma target 4.5
             // ------------------------------------- Material Keywords
-            #pragma shader_feature_local _USEENVREFLECTION_ON
+            #pragma shader_feature_local _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature_local_fragment _RECEIVESHADOWS_ON
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _USEEMISSION_ON
@@ -76,6 +70,7 @@ Shader "OcOilPaint/BrushStrokeLit" {
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fog
             //-------------------------------------- GPU Instancing
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
@@ -98,24 +93,11 @@ Shader "OcOilPaint/BrushStrokeLit" {
                 float _HeightOffset;
                 float _AlphaCutoff;
                 float _RotationRandomness;
-
                 float _BumpScale;
-            
                 float _Metallic;
                 float _Smoothness;
-
-                float4 _RampTex_ST;
-
-                float _FresnelIntensity;
-                float _FresnelThreshold;
-                float _FresnelSmoothness;
-                float3 _FresnelColor;
-
                 float4 _EmissionColor;
             CBUFFER_END
-
-            TEXTURE2D(_RampTex);
-            SAMPLER(sampler_RampTex);
 
             struct StrokeData
             {
@@ -154,6 +136,12 @@ Shader "OcOilPaint/BrushStrokeLit" {
                 DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 7);
                 #ifdef DYNAMICLIGHTMAP_ON
                 float2  dynamicLightmapUV : TEXCOORD8;
+                #endif
+
+                #ifdef _ADDITIONAL_LIGHTS_VERTEX
+                half4 fogFactorAndVertexLight : TEXCOORD9; 
+                #else
+                half fogFactor : TEXCOORD9;
                 #endif
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -214,57 +202,27 @@ Shader "OcOilPaint/BrushStrokeLit" {
                 o.uv = float2(uvX, uvY);
 
                 #ifdef REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR
-                    o.shadowCoord = GetShadowCoord(inputData);
+                o.shadowCoord = GetShadowCoord(inputData);
                 #endif
 
                 OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
+                OUTPUT_SH(o.normalWS, o.vertexSH);
+                
                 #ifdef DYNAMICLIGHTMAP_ON
-                    output.dynamicLightmapUV = input.dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+                output.dynamicLightmapUV = input.dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
                 #endif
-                OUTPUT_SH(o.normalWS.xyz, o.vertexSH);
+
+                // Fog
+                half fogFactor = ComputeFogFactor(o.positionHCS.z);
+                #ifdef _ADDITIONAL_LIGHTS_VERTEX
+                half3 vertexLight = VertexLighting(output.positionWS, output.normalWS.xyz);
+                output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+                #else
+                o.fogFactor = fogFactor;
+                #endif
+
                 return o;
             }
-
-            half3 MyLightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
-                  half3 lightColor, half3 lightDirectionWS, half lightAttenuation,
-                  half3 normalWS, half3 viewDirectionWS,
-                  half clearCoatMask, bool specularHighlightsOff)
-            {
-                half NdotL = saturate(dot(normalWS, lightDirectionWS));
-                half3 radiance = lightColor * (lightAttenuation * NdotL);
-
-                half3 brdf = brdfData.diffuse;
-                #ifndef _SPECULARHIGHLIGHTS_OFF
-                [branch] if (!specularHighlightsOff)
-                {
-                    brdf += brdfData.specular * DirectBRDFSpecular(brdfData, normalWS, lightDirectionWS, viewDirectionWS);
-                    // return brdfData.specular * DirectBRDFSpecular(brdfData, normalWS, lightDirectionWS, viewDirectionWS);
-                }
-                #else
-                return float3(1,0,1);
-                #endif // _SPECULARHIGHLIGHTS_OFF
-
-                return brdf * radiance;
-            }
-
-            half3 MyLightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, Light light, half3 normalWS, half3 viewDirectionWS, half clearCoatMask,
-                bool specularHighlightsOff)
-            {
-                return MyLightingPhysicallyBased(brdfData, brdfDataClearCoat, light.color, light.direction, light.distanceAttenuation * light.shadowAttenuation, normalWS,
-                    viewDirectionWS, clearCoatMask, specularHighlightsOff);
-            }
-
-            half3 MyLightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS)
-            {
-                #ifdef _SPECULARHIGHLIGHTS_OFF
-                bool specularHighlightsOff = true;
-                #else
-                bool specularHighlightsOff = false;
-                #endif
-                const BRDFData noClearCoat = (BRDFData)0;
-                return MyLightingPhysicallyBased(brdfData, noClearCoat, light, normalWS, viewDirectionWS, 0.0, specularHighlightsOff);
-            }
-
 
             float4 BrushStrokeFragment(BrushStrokeVaryings IN) : SV_Target
             {
@@ -273,39 +231,90 @@ Shader "OcOilPaint/BrushStrokeLit" {
                 float4 mask = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv);
                 clip(mask.a - _AlphaCutoff);
 
+                //data initialization
+                LightingData lightingData = (LightingData)0;
                 float3 normalWS = IN.normalWS;
                 #ifdef _NORMALMAP
                 normalWS = SampleNormal(IN.uv, _BumpMap, sampler_BumpMap,-_BumpScale);
                 normalWS = normalWS.x * IN.tangentWS + normalWS.y * IN.binormalWS + normalWS.z * IN.normalWS;
                 #endif
-
-                //shadow
                 float4 shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
-                Light mainLight = GetMainLight(shadowCoord);
+                half4 shadowMask = SAMPLE_SHADOWMASK(IN.staticLightmapUV);
 
-                //view direction
+                Light mainLight = (Light)0;
+                #ifdef _RECEIVESHADOWS_ON
+                mainLight = GetMainLight(shadowCoord);
+                #else
+                mainLight = GetMainLight();
+                #endif
+
                 float3 viewDirectionWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
+                BRDFData brdfData = (BRDFData)0;
+                InitializeBRDFData(IN.vertexColor.rgb, _Metallic, 0, _Smoothness, mask.a, brdfData);
+                uint meshRenderingLayers = GetMeshRenderingLayer();
 
-                BRDFData brdfData;
-                InitializeBRDFData(IN.vertexColor, _Metallic,0, _Smoothness, mask.a, brdfData);
+                //main light
+                #ifdef _LIGHT_LAYERS
+                if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+                #endif
+                {
+                    lightingData.mainLightColor = LightingPhysicallyBased(brdfData, mainLight, normalWS, viewDirectionWS);
+                }
 
-                // return float4(brdfData.specular, 1);
+                //vertex lights
+                #ifdef _ADDITIONAL_LIGHTS_VERTEX
+                half3 vertexLight = VertexLighting(IN.positionWS, normalWS);
+                lightingData.vertexLightingColor = vertexLight * brdfData.diffuse;
+                #endif
+
+                //additional lights
+                #ifdef _ADDITIONAL_LIGHTS
+                uint pixelLightCount = GetAdditionalLightsCount();
                 
-                //direct lighting
-                float3 directColor = LightingPhysicallyBased(brdfData, mainLight, normalWS, viewDirectionWS);
-                return float4(directColor, 1);
+                #if USE_FORWARD_PLUS
+                for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)
+                {
+                    FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
+                
+                    Light light= GetAdditionalLight(lightIndex,IN.positionWS,shadowMask);
+                
+                #ifdef _LIGHT_LAYERS
+                    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+                #endif
+                    {
+                        lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, light,normalWS, viewDirectionWS);
+                    }
+                }
 
+                #endif
 
+                LIGHT_LOOP_BEGIN(pixelLightCount)
+                    Light light= GetAdditionalLight(lightIndex,IN.positionWS,shadowMask);
+                
+                #ifdef _LIGHT_LAYERS
+                    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+                #endif
+                    {
+                        lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, light,normalWS, viewDirectionWS);
+                    }
+                LIGHT_LOOP_END
+                #endif
+
+                //gi
                 half3 bakedGI = 0;
                 #if defined(DYNAMICLIGHTMAP_ON)
                 bakedGI = SAMPLE_GI(IN.staticLightmapUV, IN.dynamicLightmapUV, IN.vertexSH, normalWS);
                 #else
                 bakedGI = SAMPLE_GI(input.staticLightmapUV, IN.vertexSH, IN.normalWS);
                 #endif
+                lightingData.giColor = GlobalIllumination(brdfData, bakedGI, 1, normalWS, viewDirectionWS);
 
-                float3 indirectColor = GlobalIllumination(brdfData, bakedGI, 1, normalWS, viewDirectionWS);
+                //emission
+                #ifdef _USEEMISSION_ON
+                lightingData.emissionColor = _EmissionColor.rgb;
+                #endif
 
-                return float4(directColor + indirectColor, mask.a);
+                return CalculateFinalColor(lightingData, IN.vertexColor.rgb, mask.a, IN.fogFactor);
             }
             ENDHLSL
         }
