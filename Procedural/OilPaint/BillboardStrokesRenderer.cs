@@ -1,6 +1,3 @@
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -17,17 +14,8 @@ namespace XiheRendering.Procedural.OilPaint {
         public bool useSkinnedMeshRenderer = false;
 
         // material
-        public float scaleMax = 1;
-        public float scaleMin = 0;
-
-        [Range(0, 1f)]
-        public float rotationRandomness = 0.2f;
-
-        [Range(0, 1f)]
-        public float bumpiness = 0.2f;
-
-        [Range(0, 1f)]
-        public float alphaCutoff = 0.2f;
+        [Tooltip("Optimize for mobile")]
+        public bool enableNormalMap = false;
 
         public int layer;
 
@@ -35,12 +23,7 @@ namespace XiheRendering.Procedural.OilPaint {
         public bool renderInSceneCamera = true;
         public bool enableDebug = false;
 
-        private float m_CachedScaleMax = -1;
-        private float m_CachedScaleMin = -1;
-        private float m_CachedRotationRandomness = -1;
         private Vector3 m_CachedBaseMeshScale = Vector3.zero;
-        private float m_CachedBumpiness = -1;
-        private float m_CachedAlphaCutoff = -1;
 
         private Material m_OriginalMaterial;
 
@@ -64,7 +47,6 @@ namespace XiheRendering.Procedural.OilPaint {
         private static readonly int RotationRandomness = Shader.PropertyToID("_RotationRandomness");
         private static readonly int TRSMatrix = Shader.PropertyToID("_TRSMatrix");
         private static readonly int HeightOffset = Shader.PropertyToID("_HeightOffset");
-        private static readonly int AlphaCutoff = Shader.PropertyToID("_AlphaCutoff");
         private static readonly int ScaleMin = Shader.PropertyToID("_ScaleMin");
         private static readonly int ScaleMax = Shader.PropertyToID("_ScaleMax");
         private static readonly int StrokeDataBuffer = Shader.PropertyToID("_StrokeDataBuffer");
@@ -76,32 +58,6 @@ namespace XiheRendering.Procedural.OilPaint {
             public Vector4 tangent;
             public Vector4 color;
         }
-
-#if UNITY_EDITOR
-        private void OnValidate() {
-            if (billboardMesh == null) {
-                billboardMesh = AssetDatabase.LoadAssetAtPath<Mesh>("Assets/XiheRendering/Procedural/OilPaint/Template/Quad.asset");
-            }
-
-            // if (billboardMaterial == null) {
-            //     billboardMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/XiheRendering/Procedural/OilPaint/Template/BrushStroke.mat");
-            // }
-
-            if (baseMeshFilter == null) baseMeshFilter = GetComponent<MeshFilter>();
-            if (baseMeshRenderer == null) {
-                if (TryGetComponent<MeshRenderer>(out baseMeshRenderer)) {
-                    baseSkinnedMeshRenderer = null;
-                }
-            }
-
-            if (baseSkinnedMeshRenderer == null) {
-                if (TryGetComponent<SkinnedMeshRenderer>(out baseSkinnedMeshRenderer)) {
-                    baseMeshFilter = null;
-                    baseMeshRenderer = null;
-                }
-            }
-        }
-#endif
 
         void Start() {
             Init();
@@ -160,20 +116,10 @@ namespace XiheRendering.Procedural.OilPaint {
 
         private bool SettingChanged() {
             bool changed = false;
-            if (Mathf.Abs(m_CachedScaleMax - scaleMax) > 0.01f) changed = true;
-            if (Mathf.Abs(m_CachedScaleMin - scaleMin) > 0.01f) changed = true;
-            if (Mathf.Abs(m_CachedRotationRandomness - rotationRandomness) > 0.01f) changed = true;
             if (Mathf.Abs(transform.localScale.magnitude - m_CachedBaseMeshScale.magnitude) > 0.01f) changed = true;
-            if (Mathf.Abs(m_CachedBumpiness - bumpiness) > 0.01f) changed = true;
-            if (Mathf.Abs(m_CachedAlphaCutoff - alphaCutoff) > 0.01f) changed = true;
 
             if (changed) {
-                m_CachedScaleMax = scaleMax;
-                m_CachedScaleMin = scaleMin;
-                m_CachedRotationRandomness = rotationRandomness;
                 m_CachedBaseMeshScale = transform.localScale;
-                m_CachedBumpiness = bumpiness;
-                m_CachedAlphaCutoff = alphaCutoff;
                 return true;
             }
 
@@ -208,14 +154,14 @@ namespace XiheRendering.Procedural.OilPaint {
             m_StrokeDataBuffer.SetData(m_StrokeDataArray);
 
             billboardMaterial.SetBuffer(StrokeDataBuffer, m_StrokeDataBuffer);
+            if (enableNormalMap) {
+                billboardMaterial.EnableKeyword("_UseNormalMap_ON");
+            }
+            else {
+                billboardMaterial.DisableKeyword("_UseNormalMap_ON");
+            }
 
-            m_PropertyBlock.SetFloat(RotationRandomness, rotationRandomness);
             m_PropertyBlock.SetMatrix(TRSMatrix, transform.localToWorldMatrix);
-            m_PropertyBlock.SetFloat(HeightOffset, bumpiness);
-            m_PropertyBlock.SetFloat(AlphaCutoff, alphaCutoff);
-            scaleMin = Mathf.Clamp(scaleMin, 0, scaleMax);
-            m_PropertyBlock.SetFloat(ScaleMin, scaleMin);
-            m_PropertyBlock.SetFloat(ScaleMax, scaleMax);
 
             // Args
             // 0 index count per instance,

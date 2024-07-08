@@ -1,4 +1,4 @@
-﻿float Random01(float seed)
+float Random01(float seed)
 {
     const float a = 2;
     const float b = 3;
@@ -13,4 +13,9 @@ float3 RotateAroundAxis(float3 v, float3 axis, float angle)
     float sinAngle = sin(angle);
 
     return v * cosAngle + cross(axis, v) * sinAngle + axis * dot(axis, v) * (1 - cosAngle);
+}
+
+float LinearStep(float min, float max, float x)
+{
+    return saturate((x - min) / (max - min));
 }
