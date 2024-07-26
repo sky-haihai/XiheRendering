@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.EditorCoroutines.Editor;
+// using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
 using XiheRendering.Utility.VertexDensityBaker.Editor;
@@ -27,7 +27,7 @@ namespace XiheRendering.Procedural.OilPaint.Editor {
         private SampleMode m_SampleMode;
         private int m_VertexCount;
         private bool m_Baking;
-        private EditorCoroutine m_Handle;
+        // private EditorCoroutine m_Handle;
         private int m_TotalProcessCount;
         private int m_TriangleCount;
 
@@ -112,7 +112,7 @@ namespace XiheRendering.Procedural.OilPaint.Editor {
 
             if (GUILayout.Button("Bake", GUILayout.Height(40))) {
                 m_Baking = true;
-                m_Handle = EditorCoroutineUtility.StartCoroutineOwnerless(StartBake());
+                // m_Handle = EditorCoroutineUtility.StartCoroutineOwnerless(StartBake());
             }
 
             GUI.enabled = true;
@@ -200,7 +200,7 @@ namespace XiheRendering.Procedural.OilPaint.Editor {
 
         void StopBake() {
             if (m_Baking) {
-                EditorCoroutineUtility.StopCoroutine(m_Handle);
+                // EditorCoroutineUtility.StopCoroutine(m_Handle);
                 m_Baking = false;
                 EditorUtility.ClearProgressBar();
             }

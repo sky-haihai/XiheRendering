@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections;
-using Unity.EditorCoroutines.Editor;
+// using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -94,7 +94,7 @@ namespace XiheRendering.Utility.TextureToVertexColorBaker.Editor {
             }
 
             if (GUILayout.Button("Start Bake", GUILayout.Height(60))) {
-                EditorCoroutineUtility.StartCoroutineOwnerless(StartBake());
+                // EditorCoroutineUtility.StartCoroutineOwnerless(StartBake());
             }
 
             GUI.enabled = true;

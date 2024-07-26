@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.EditorCoroutines.Editor;
+// using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -26,7 +26,7 @@ namespace XiheRendering.Utility.VertexDensityBaker.Editor {
         private SampleMode m_SampleMode;
         private int m_VertexCount;
         private bool m_Baking = false;
-        private EditorCoroutine m_Handle;
+        // private EditorCoroutine m_Handle;
         private int m_TotalProcessCount = 0;
         private int m_TriangleCount = 0;
 
@@ -70,7 +70,7 @@ namespace XiheRendering.Utility.VertexDensityBaker.Editor {
 
             if (GUILayout.Button("Start Bake", GUILayout.Height(60))) {
                 m_Baking = true;
-                m_Handle = EditorCoroutineUtility.StartCoroutineOwnerless(StartBake());
+                // m_Handle = EditorCoroutineUtility.StartCoroutineOwnerless(StartBake());
             }
 
             GUI.enabled = true;
@@ -78,7 +78,7 @@ namespace XiheRendering.Utility.VertexDensityBaker.Editor {
 
         void StopBake() {
             if (m_Baking) {
-                EditorCoroutineUtility.StopCoroutine(m_Handle);
+                // EditorCoroutineUtility.StopCoroutine(m_Handle);
                 m_Baking = false;
                 EditorUtility.ClearProgressBar();
             }
@@ -93,12 +93,12 @@ namespace XiheRendering.Utility.VertexDensityBaker.Editor {
         }
 
         private void BakeVertexDensity() {
-            EditorCoroutineUtility.StartCoroutineOwnerless(ComputeVertexNeighbors(vertexNeighbors => {
-                EditorCoroutineUtility.StartCoroutineOwnerless(ComputeVertexDensity(vertexNeighbors, list => {
-                    EditorUtility.ClearProgressBar();
-                    ApplyDensityToVertexColor(list);
-                }));
-            }));
+            // EditorCoroutineUtility.StartCoroutineOwnerless(ComputeVertexNeighbors(vertexNeighbors => {
+            //     EditorCoroutineUtility.StartCoroutineOwnerless(ComputeVertexDensity(vertexNeighbors, list => {
+            //         EditorUtility.ClearProgressBar();
+            //         ApplyDensityToVertexColor(list);
+            //     }));
+            // }));
         }
 
         IEnumerator ComputeVertexNeighbors(Action<List<int>[]> onFinish) {

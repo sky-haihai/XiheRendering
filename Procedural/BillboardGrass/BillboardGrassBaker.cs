@@ -1,6 +1,6 @@
 ﻿#if UNITY_EDITOR
 using System;
-using Unity.EditorCoroutines.Editor;
+// using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -13,7 +13,7 @@ namespace XiheRendering.Procedural.BillboardGrass {
         public bool isBaking;
         public string remainingTimeStr;
 
-        private EditorCoroutine m_BakeTexturesCoroutine;
+        // private EditorCoroutine m_BakeTexturesCoroutine;
         private string m_LastBakePath;
         private DateTime m_CachedTime = DateTime.MinValue;
 
@@ -25,12 +25,12 @@ namespace XiheRendering.Procedural.BillboardGrass {
             Texture2D heightTexture = new Texture2D(pixelCountX, pixelCountY, TextureFormat.R16, false, true);
             onBakeFinished += (path) => {
                 m_LastBakePath = path;
-                m_BakeTexturesCoroutine = null;
+                // m_BakeTexturesCoroutine = null;
             };
 
             var bakeTexturesCo = DensityMapBakeHelper.BakeDensityAndHeightMapCo(densityTexture, heightTexture, bakeVolumeCenter, bakeVolumeDimension, pixelCountX, pixelCountY,
                 bakerHitLayerMask, m_LastBakePath, onProgress, onBakeFinished);
-            m_BakeTexturesCoroutine = EditorCoroutineUtility.StartCoroutine(bakeTexturesCo, this);
+            // m_BakeTexturesCoroutine = EditorCoroutineUtility.StartCoroutine(bakeTexturesCo, this);
 
             isBaking = true;
         }
@@ -54,15 +54,15 @@ namespace XiheRendering.Procedural.BillboardGrass {
         }
 
         private void Update() {
-            if (m_BakeTexturesCoroutine == null) {
-                isBaking = false;
-            }
+            // if (m_BakeTexturesCoroutine == null) {
+                // isBaking = false;
+            // }
         }
 
         public void StopBakeDensityMap() {
-            if (m_BakeTexturesCoroutine != null) {
-                EditorCoroutineUtility.StopCoroutine(m_BakeTexturesCoroutine);
-            }
+            // if (m_BakeTexturesCoroutine != null) {
+                // EditorCoroutineUtility.StopCoroutine(m_BakeTexturesCoroutine);
+            // }
 
             isBaking = false;
             EditorUtility.ClearProgressBar();
